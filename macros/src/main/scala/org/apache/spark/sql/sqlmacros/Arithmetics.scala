@@ -20,7 +20,7 @@ package org.apache.spark.sql.sqlmacros
 import org.apache.spark.sql.catalyst.{expressions => sparkexpr}
 import org.apache.spark.sql.types.IntegralType
 
-trait Arithmetics { self : ExprBuilders with ExprTranslator =>
+trait Arithmetics { self : ExprTranslator =>
 
   import macroUniverse._
 

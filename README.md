@@ -198,7 +198,7 @@ import org.apache.spark.sql.defineMacros._
 import org.apache.spark.sql.sqlmacros.DateTimeUtils._
 import java.time.ZoneId
 
-spark.registerMacro("taxAndDiscount", spark.udm({(prodCat : String, amt : Double) =>
+spark.registerMacro("taxAndDiscountM", spark.udm({(prodCat : String, amt : Double) =>
     val taxRate = prodCat match {
       case "grocery" => 0.0
       case "alcohol" => 10.5

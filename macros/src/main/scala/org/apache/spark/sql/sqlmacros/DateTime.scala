@@ -42,8 +42,7 @@ import org.apache.spark.unsafe.types.CalendarInterval
  *   must be static values.
  * - [[ZoneId]] must be a static value.
  */
-trait DateTime {
-  self: ExprBuilders with ExprTranslator =>
+trait DateTime { self: ExprTranslator =>
 
   import macroUniverse._
 

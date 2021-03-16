@@ -25,8 +25,6 @@ import org.apache.spark.sql.catalyst.{expressions => sparkexpr}
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.types.DataType
 
-
-
 trait ExprTranslator extends MacrosEnv with ExprBuilders with ExprOptimize with Logging {
   import macroUniverse._
 
@@ -73,6 +71,9 @@ trait ExprTranslator extends MacrosEnv with ExprBuilders with ExprOptimize with 
       case e : Exception =>
       warn(tree, s"Failed to do $action(exception = ${e.getMessage})")
       None
+      case e : Error =>
+        warn(tree, s"Failed to do $action(error = ${e.getMessage})")
+        None
     }
   }
 
@@ -175,6 +176,13 @@ trait ExprTranslator extends MacrosEnv with ExprBuilders with ExprOptimize with 
           Some(vInfo)
         case _ => None
       }
+    }
+  }
+
+  object MethodCall {
+    def unapply(t: mTree): Option[(mTree, mTermName)] = t match {
+      case q"$l.$m" => Some((l, m))
+      case _ => None
     }
   }
 }

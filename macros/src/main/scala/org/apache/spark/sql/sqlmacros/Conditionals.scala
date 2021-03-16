@@ -29,8 +29,7 @@ import org.apache.spark.sql.types.BooleanType
  * - the pattern must be a literal for constructor pattern like `(a,b)`, `Point(1,2)` etc.
  *
  */
-trait Conditionals {
-  self: ExprBuilders with ExprTranslator =>
+trait Conditionals { self: ExprTranslator =>
 
   import macroUniverse._
 
@@ -42,11 +41,6 @@ trait Conditionals {
   val nullCheckMethods = Seq("is_null", "is_not_null")
   val null_safe_eq = "null_safe_eq"
   val inMethods = Seq("in", "not_in")
-
-  val strTyp = typeOf[String]
-  val startsWithSyms = strTyp.member(TermName("startsWith")).alternatives
-  val endsWithSym = strTyp.member(TermName("endsWith"))
-  val containsSym = strTyp.member(TermName("contains"))
 
   private def isStrMethodCall(t : mTree) : Boolean =
     startsWithSyms.contains(t.symbol) || endsWithSym == t.symbol || containsSym == t.symbol

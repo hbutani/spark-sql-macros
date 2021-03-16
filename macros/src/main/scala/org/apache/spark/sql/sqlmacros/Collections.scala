@@ -67,6 +67,10 @@ trait Collections {
           for (
             entries <- CatalystExpressions.unapplySeq(args)
           ) yield sparkexpr.CreateArray(entries)
+        case q"$id(..$args)(..$implArgs)" if arrApplySym.alternatives.contains(id.symbol) =>
+          for (
+            entries <- CatalystExpressions.unapplySeq(args)
+          ) yield sparkexpr.CreateArray(entries)
         case q"$id(..$args)" if mapApplySym.alternatives.contains(id.symbol) =>
           for (
             entries <- CatalystExpressions.unapplySeq(args)
@@ -75,6 +79,48 @@ trait Collections {
             val mEntries = entries.flatMap(_.asInstanceOf[sparkexpr.CreateNamedStruct].valExprs)
             sparkexpr.CreateMap(mEntries)
           }
+        case _ => None
+      }
+  }
+
+  /*
+    functions TODO:
+
+    Size <- arr.size, map.size
+    MapKeys <- m.KeyArray // special func
+    ArraysZip <- arr.zip
+    MapValues <- m.ValueArray // special func
+    MapEntries <- by a CollectionUtils func
+    MapConcat <- m ++ m
+    MapFromEntries <- by a CollectionUtils func
+    SortArray <- a.sorted, by a CollectionUtils func
+
+    Shuffle(arr) <- by a CollectionUtils func
+    Reverse <- arr.reverse
+    ArrayContains <- arr.contains
+    ArraysOverlap <- by a CollectionUtils func
+    Slice <- arr.slice
+    ArrayJoin <- arr.mkString
+    ArrayMin <- arr.min
+    ArrayMax <- arr.max
+    ArrayPosition <- by a CollectionUtils func
+    Concat <- arr ++ arr
+    Flatten <- arr(arr, arr).flatten
+
+    Sequence <- by a CollectionUtils func; some cases of Range(0, 10) => Seq(0, 9)
+    ArrayRepeat <- by a CollectionUtils func
+    ArrayRemove <- by a CollectionUtils func
+
+    ArrayDistinct <- arr.distinct  // advanced translate; a ArrayDistinct represents a Scala Set
+    ArrayUnion <- arr ++ arr
+    ArrayIntersect <- arr intersect arr
+    ArrayExcept <- by a CollectionUtils func; arr except arr
+
+   */
+
+  object CollectionFunctions {
+    def unapply(t: mTree): Option[sparkexpr.Expression] =
+      t match {
         case _ => None
       }
   }

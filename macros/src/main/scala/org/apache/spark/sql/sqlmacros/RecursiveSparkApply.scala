@@ -19,8 +19,7 @@ package org.apache.spark.sql.sqlmacros
 import org.apache.spark.sql.catalyst.{expressions => sparkexpr, FunctionIdentifier}
 import org.apache.spark.sql.catalyst.analysis.FunctionRegistry.FunctionBuilder
 
-trait RecursiveSparkApply {
-  self: ExprBuilders with ExprTranslator =>
+trait RecursiveSparkApply { self: ExprTranslator =>
 
   import macroUniverse._
 

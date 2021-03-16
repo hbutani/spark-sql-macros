@@ -18,50 +18,12 @@
 package org.apache.spark.sql
 
 import org.apache.spark.sql.hive.test.sqlmacros.TestSQLMacrosHive
-import org.apache.spark.sql.sqlmacros.SQLMacroExpressionBuilder
 
 class MacrosTest extends AbstractTest {
 
   import org.apache.spark.sql.defineMacros._
-  import scala.tools.reflect.ToolBox
   import org.apache.spark.sql.catalyst.ScalaReflection._
   import universe._
-
-  private val tb = mirror.mkToolBox()
-
-  private def eval(fnTree : Tree) : Either[_, SQLMacroExpressionBuilder] = {
-    tb.eval(
-      q"""{
-          new org.apache.spark.sql.defineMacros.SparkSessionMacroExt(
-             org.apache.spark.sql.hive.test.sqlmacros.TestSQLMacrosHive.sparkSession
-             ).udm(${fnTree})
-          }
-        """).asInstanceOf[Either[_, SQLMacroExpressionBuilder]]
-  }
-
-  private def register(nm : String, fnTree : Tree): Unit = {
-    tb.eval(
-      q"""{
-          import org.apache.spark.sql.defineMacros._
-          val ss = org.apache.spark.sql.hive.test.sqlmacros.TestSQLMacrosHive.sparkSession
-          ss.registerMacro($nm,ss.udm(${fnTree}))
-        }"""
-    )
-  }
-
-  // scalastyle:off println
-  private def handleMacroOutput(r: Either[Any, SQLMacroExpressionBuilder]) = {
-    r match {
-      case Left(fn) => println(s"Failed to create expression for ${fn}")
-      case Right(fb) =>
-        val s = fb.macroExpr.treeString(false).split("\n").
-          map(s => if (s.length > 100) s.substring(0, 97) + "..." else s).mkString("\n")
-        println(
-        s"""Spark SQL expression is
-           |${fb.macroExpr.sql}""".stripMargin)
-    }
-  }
-  // scalastyle:on
 
   test("compileTime") { td =>
     handleMacroOutput(TestSQLMacrosHive.sparkSession.udm((i: Int) => i))
@@ -276,7 +238,7 @@ class MacrosTest extends AbstractTest {
       TestSQLMacrosHive.sql(
         "select taxAndDiscount(c_varchar2_40, c_number) from unit_test"
       )
-    println(
+    printOut(
       s"""Macro based Plan:
          |${dfM.queryExecution.analyzed}""".stripMargin
     )
@@ -328,11 +290,11 @@ class MacrosTest extends AbstractTest {
 
     TestSQLMacrosHive.udf.register("intUDF", (i: Int) => i + 1)
 
-    println("Function based Plan:")
+    printOut("Function based Plan:")
     TestSQLMacrosHive.sql("explain select intUDF(c_int) from unit_test where intUDF(c_int) > 1").
       show(1000, false)
 
-    println("Macro based Plan:")
+    printOut("Macro based Plan:")
     TestSQLMacrosHive.sql("explain select intUDM(c_int) from unit_test where intUDM(c_int) > 1").
       show(1000, false)
 
@@ -354,7 +316,7 @@ class MacrosTest extends AbstractTest {
     )
 
     val dfM = TestSQLMacrosHive.sql("select m1(c_int) from unit_test")
-    println(
+    printOut(
       s"""Macro based Plan:
          |${dfM.queryExecution.analyzed}""".stripMargin
     )
@@ -378,7 +340,7 @@ class MacrosTest extends AbstractTest {
     }.tree)
 
     val dfM = TestSQLMacrosHive.sql("select m3(c_int) from unit_test")
-    println(
+    printOut(
       s"""Macro based Plan:
          |${dfM.queryExecution.analyzed}""".stripMargin
     )

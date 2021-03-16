@@ -35,7 +35,8 @@ import org.apache.spark.sql.types.StringType
  */
 trait ExprBuilders
   extends Arithmetics with Collections with Structs with Tuples
-with DateTime with Options with RecursiveSparkApply with Conditionals { self : ExprTranslator =>
+with DateTime with Options with RecursiveSparkApply with Conditionals
+with Strings { self : ExprTranslator =>
 
   import macroUniverse._
 
@@ -71,7 +72,7 @@ with DateTime with Options with RecursiveSparkApply with Conditionals { self : E
             new sparkexpr.Literal(v, StringType)
           })
       } else {
-        for (typInfo <- TypeInfo.unapply(t)) yield {
+        (for (typInfo <- TypeInfo.unapply(t)) yield {
           doWithWarning[sparkexpr.Expression](t,
             "evaluate to a static value",
             {
@@ -79,8 +80,8 @@ with DateTime with Options with RecursiveSparkApply with Conditionals { self : E
               val iRow = InternalRow(v)
               val lVal = typInfo.exprEnc.objSerializer.eval(iRow)
               new sparkexpr.Literal(lVal, typInfo.catalystType)
-            }).get
-        }
+            })
+        }).flatten
       }
     }
   }
@@ -99,6 +100,7 @@ with DateTime with Options with RecursiveSparkApply with Conditionals { self : E
         case Literals(e) => e
         case Reference(e) => e
         case BasicArith(e) => e
+        case StringPatterns(e) => e
         case JavaMathFuncs(e) => e
         case CollectionConstruct(e) => e
         case CollectionApply(e) => e

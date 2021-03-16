@@ -19,8 +19,7 @@ package org.apache.spark.sql.sqlmacros
 import org.apache.spark.sql.catalyst.{expressions => sparkexpr}
 import org.apache.spark.sql.types.{DataType, StructType}
 
-trait Structs {
-  self: ExprBuilders with ExprTranslator =>
+trait Structs { self: ExprTranslator =>
 
   import macroUniverse._
 

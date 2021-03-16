@@ -19,12 +19,9 @@ package org.apache.spark.sql.sqlmacros
 
 import org.apache.spark.sql.catalyst.{expressions => sparkexpr}
 
-trait Tuples {
-  self: ExprBuilders with ExprTranslator =>
+trait Tuples { self: ExprTranslator =>
 
   import macroUniverse._
-
-
 
   object TupleConstruct {
     /**
