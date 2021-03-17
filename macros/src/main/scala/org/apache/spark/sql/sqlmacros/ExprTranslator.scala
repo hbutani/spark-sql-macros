@@ -179,9 +179,27 @@ trait ExprTranslator extends MacrosEnv with ExprBuilders with ExprOptimize with 
     }
   }
 
-  object MethodCall {
-    def unapply(t: mTree): Option[(mTree, mTermName)] = t match {
-      case q"$l.$m" => Some((l, m))
+  /**
+   * return the elem being operated on and args1 and args2
+   */
+  object InstanceMethodCall {
+    def unapply(t: mTree): Option[(mTree, Seq[mTree], Seq[mTree])] = t match {
+      case q"$ent.$_" => Some((ent, Seq.empty, Seq.empty))
+      case q"$ent.$_[..$_]" => Some((ent, Seq.empty, Seq.empty))
+      case q"$ent.$_(..$args1)" => Some((ent, args1, Seq.empty))
+      case q"$ent.$_[..$_](..$args1)" => Some((ent, args1, Seq.empty))
+      case q"$ent.$_(..$args1)(..$args2)" => Some((ent, args1, args2))
+      case q"$ent.$_[..$_](..$args1)(..$args2)" => Some((ent, args1, args2))
+      case _ => None
+    }
+  }
+
+  object ModuleMethodCall {
+    def unapply(t: mTree): Option[(mTree, Seq[mTree], Seq[mTree])] = t match {
+      case q"$id(..$args1)" => Some((id, args1, Seq.empty))
+      case q"$id[..$_](..$args1)" => Some((id, args1, Seq.empty))
+      case q"$id(..$args1)(..$args2)" => Some((id, args1, args2))
+      case q"$id[..$_](..$args1)(..$args2)" => Some((id, args1, args2))
       case _ => None
     }
   }

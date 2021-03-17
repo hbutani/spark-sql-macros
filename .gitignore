@@ -42,7 +42,7 @@ docs/notes/*_ImplNotes.org
 docs/notes/mynotes
 spark-sql-macros.wiki
 jdbc-examples
-
+**/Experiments.*
 
 
 # docker

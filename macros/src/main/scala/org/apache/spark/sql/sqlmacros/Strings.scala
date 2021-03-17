@@ -116,51 +116,50 @@ trait Strings { self : ExprTranslator =>
   object StringPatterns {
     def unapply(t: mTree): Option[sparkexpr.Expression] =
       t match {
-        case q"$id(..$args)" =>
-          id match {
-            case MethodCall(l, m) if toUpperSym.contains(id.symbol) && args.size == 0 =>
-              for (strE <- CatalystExpression.unapply(l)) yield sparkexpr.Upper(strE)
-            case MethodCall(l, m) if toLowerSym.contains(id.symbol) && args.size == 0 =>
-              for (strE <- CatalystExpression.unapply(l)) yield sparkexpr.Lower(strE)
-            case MethodCall(l, m) if trimSym.contains(id.symbol) =>
-              for (
-                strE <- CatalystExpression.unapply(l)
-              ) yield sparkexpr.StringTrim(strE)
-            case MethodCall(l, m) if indexOfSym.contains(id.symbol) =>
-              for (
-                strE <- CatalystExpression.unapply(l);
-                argE <- CatalystExpression.unapply(args(0)) if args(0).tpe <:< strTyp
-              ) yield sparkexpr.StringInstr(strE, argE)
-            case q"$l(..$str).$m" if strOpsTimesSym.contains(id.symbol) =>
-              for (
-                timesE <- CatalystExpression.unapply(args(0)) if args(0).tpe <:< typeOf[Int];
-                strE <- CatalystExpression.unapply(str(0)) if str(0).tpe <:< typeOf[String]
-              ) yield sparkexpr.StringRepeat(strE, timesE)
-            case MethodCall(l, m) if substringSym.contains(id.symbol) && args.size == 1 =>
-              for (
-                strE <- CatalystExpression.unapply(l);
-                posE <- CatalystExpression.unapply(args(0)) if args(0).tpe <:< typeOf[Int]
-              ) yield sparkexpr.Substring(strE, posE, sparkexpr.Literal(Int.MaxValue))
-            case MethodCall(l, m) if substringSym.contains(id.symbol) && args.size == 2 =>
-              for (
-                strE <- CatalystExpression.unapply(l);
-                posE <- CatalystExpression.unapply(args(0)) if args(0).tpe <:< typeOf[Int];
-                lenE <- CatalystExpression.unapply(args(1)) if args(1).tpe <:< typeOf[Int]
-              ) yield sparkexpr.Substring(strE, posE, lenE)
-            case MethodCall(l, m) if lengthSym.contains(id.symbol) =>
-              for (strE <- CatalystExpression.unapply(l)) yield sparkexpr.Length(strE)
-            case id if eltSym.contains(id.symbol)  && args.size > 1 =>
-              for (
-                nE <- CatalystExpression.unapply(args(0));
-                inputsE <- CatalystExpressions.unapplySeq(args.tail)
-              ) yield sparkexpr.Elt(nE +: inputsE)
-            case id if concatWsSym.contains(id.symbol) && args.size > 1 =>
-              for (
-                sepE <- CatalystExpression.unapply(args(0));
-                inputsE <- ConcatWSArgs.unapplySeq(args.tail)
-              ) yield sparkexpr.ConcatWs(sepE +: inputsE)
+        case InstanceMethodCall(elem, args1, args2) =>
+          if (toUpperSym.contains(t.symbol)) {
+            for (strE <- CatalystExpression.unapply(elem)) yield sparkexpr.Upper(strE)
+          } else if (toLowerSym.contains(t.symbol) ) {
+            for (strE <- CatalystExpression.unapply(elem)) yield sparkexpr.Lower(strE)
+          } else if (trimSym.contains(t.symbol)) {
+            for (strE <- CatalystExpression.unapply(elem)) yield sparkexpr.StringTrim(strE)
+          } else if (indexOfSym.contains(t.symbol)) {
+            for (
+              strE <- CatalystExpression.unapply(elem);
+              argE <- CatalystExpression.unapply(args1(0)) if args1(0).tpe <:< strTyp
+            ) yield sparkexpr.StringInstr(strE, argE)
+          } else if (substringSym.contains(t.symbol) && args1.size == 2) {
+            for (
+              strE <- CatalystExpression.unapply(elem);
+              posE <- CatalystExpression.unapply(args1(0)) if args1(0).tpe <:< typeOf[Int];
+              lenE <- CatalystExpression.unapply(args1(1)) if args1(1).tpe <:< typeOf[Int]
+            ) yield sparkexpr.Substring(strE, posE, lenE)
+          } else if (substringSym.contains(t.symbol)) {
+            for (
+              strE <- CatalystExpression.unapply(elem);
+              posE <- CatalystExpression.unapply(args1(0)) if args1(0).tpe <:< typeOf[Int]
+            ) yield sparkexpr.Substring(strE, posE, sparkexpr.Literal(Int.MaxValue))
+          } else if (lengthSym.contains(t.symbol)) {
+            for (strE <- CatalystExpression.unapply(elem)) yield sparkexpr.Length(strE)
+          } else None
+        case ModuleMethodCall(id, args1, args2) =>
+          if (eltSym.contains(id.symbol)  && args1.size > 1) {
+            for (
+              nE <- CatalystExpression.unapply(args1(0));
+              inputsE <- CatalystExpressions.unapplySeq(args1.tail)
+            ) yield sparkexpr.Elt(nE +: inputsE)
+          } else if (concatWsSym.contains(id.symbol) && args1.size > 1) {
+            for (
+              sepE <- CatalystExpression.unapply(args1(0));
+              inputsE <- ConcatWSArgs.unapplySeq(args1.tail)
+            ) yield sparkexpr.ConcatWs(sepE +: inputsE)
+          } else None
+        case q"$l(..$str).$m(..$args)" if strOpsTimesSym.contains(t.symbol) =>
+            for (
+              timesE <- CatalystExpression.unapply(args(0)) if args(0).tpe <:< typeOf[Int];
+              strE <- CatalystExpression.unapply(str(0)) if str(0).tpe <:< typeOf[String]
+            ) yield sparkexpr.StringRepeat(strE, timesE)
             case _ => None
-          }
         case _ => None
       }
   }

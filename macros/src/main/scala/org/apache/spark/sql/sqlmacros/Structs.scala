@@ -61,7 +61,8 @@ trait Structs { self: ExprTranslator =>
   object StructConstruct {
 
     private def isADTConstruction(applyTree : mTree) : Boolean = {
-      applyTree.symbol == applyTree.tpe.resultType.companion.member(TermName("apply"))
+      applyTree.tpe != null &&
+        applyTree.symbol == applyTree.tpe.resultType.companion.member(TermName("apply"))
     }
 
     private def isCandidateType(dt : DataType,
